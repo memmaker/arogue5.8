@@ -281,6 +281,7 @@ wield()
 		addmsg("Was ");
 	    else
 		addmsg("You were ");
+	    be_sound("wield");
 	    msg("wielding %s", inv_name(oweapon, TRUE));
 	}
 	if ((item = get_item(pack, "wield", WIELDABLE)) == NULL) {

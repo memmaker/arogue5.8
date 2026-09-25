@@ -547,6 +547,8 @@ int which;
 	    }
 	    obj->o_charges--;
 	    food_left = MORETIME + 5;
+	    be_sound("hungry");
+	    be_sound("hungry");
 	    msg(terse ? "Getting hungry" : "You are starting to get hungry");
 	    hungry_state = F_HUNGRY;
 	    aggravate();

@@ -63,6 +63,7 @@ buy_it()
 	if (add_pack(NULL,TRUE,&item)) {	/* try to put it in his pack */
 	    purse -= curprice;		/* take his money */
 	    ++trader;			/* another transaction */
+	    be_sound("store5");
 	    trans_line();		/* show remaining deals */
 	    curprice = -1;		/* reset stuff */
 	    curpurch[0] = 0;

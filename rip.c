@@ -101,6 +101,8 @@ register short monst;
     char buf[80];
     struct tm *localtime();
 
+    be_sound("death");
+
     time(&date);
     lt = localtime(&date);
     clear();

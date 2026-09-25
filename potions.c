@@ -259,6 +259,7 @@ bool is_potion;
 	 */
 	if (item == NULL)
 	    return;
+	be_sound("quaff");
 
 	obj = OBJPTR(item);
 	/* remove it from the pack */

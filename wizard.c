@@ -462,6 +462,7 @@ teleport()
     register int rm;
     coord c;
 
+    be_sound("teleport");
     c = hero;
     mvwaddch(cw, hero.y, hero.x, mvwinch(stdscr, hero.y, hero.x));
     do

@@ -1065,6 +1065,7 @@ bool back_stab;
     	          att_name[80],	/* Name of attacker */
 		  def_name[80];/* Name of defender */
     bool see_monst = !invisible(tp);	/* Can the player see the monster? */
+    be_sound(er == NULL ? "hit" : ee == NULL ? "mon_hit" : "");
 
     /* What do we call the attacker? */
     if (er == NULL) {	/* Player is attacking */
@@ -1124,6 +1125,7 @@ register char *er, *ee;
     	          att_name[80],	/* Name of attacker */
 		  def_name[80];/* Name of defender */
     bool see_monst = !invisible(tp);	/* Can the player see the monster? */
+    if (er == NULL) be_sound("miss");
 
     /* What do we call the attacker? */
     if (er == NULL) {	/* Player is attacking */
@@ -1376,6 +1378,7 @@ bool pr, points;
 
     if (pr)
     {
+	be_sound("kill");
 	addmsg(terse ? "Defeated " : "You have defeated ");
 	if (on(player, ISBLIND))
 	    msg("it.");

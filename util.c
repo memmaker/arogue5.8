@@ -130,6 +130,7 @@ bool get_spells;
 	max_stats.s_hpt += add;
 	if ((pstats.s_hpt += add) > max_stats.s_hpt)
 	    pstats.s_hpt = max_stats.s_hpt;
+	be_sound("level");
 	sprintf(outstring,"Welcome, %s, to level %d",
 	    cnames[player.t_ctype][min(i-1, 10)], i);
 	msg(outstring);
@@ -257,6 +258,7 @@ eat()
 
     if ((item = get_item(pack, "eat", FOOD)) == NULL)
 	return;
+    be_sound("eat");
     if ((OBJPTR(item))->o_which == 1)
 	msg("My, that was a yummy %s", fruit);
     else {

@@ -132,6 +132,7 @@ wear()
 			msg("You can't wear bracers of defense with armor.");
 		    }
 		    else {
+			be_sound("wield");
 			msg("wearing %s",inv_name(obj,TRUE));
 			cur_misc[WEAR_BRACERS] = obj;
 		    }
@@ -159,6 +160,7 @@ wear()
 			msg("You can't wear a cloak with armor.");
 		    }
 		    else {
+			be_sound("wield");
 			msg("wearing %s",inv_name(obj,TRUE));
 			cur_misc[WEAR_CLOAK] = obj;
 		    }
