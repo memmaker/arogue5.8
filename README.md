@@ -16,4 +16,4 @@ Restoration Project: https://github.com/RoguelikeRestorationProject/arogue5.8/tr
 - `web:` browser build (`web/build.sh`), played at https://ruzzoli.de/roguelikes/arogue58/
 
 Build: `make arogue58-x11` (XQuartz), `./play.sh`; web: `sh web/build.sh`, `web/deploy.sh`.
-Notes for the next person: `HANDOVER.md`. Process: `~/Games/RVIP.md`, `~/Games/rogue2wasm.md`.
+Notes for the next person: `HANDOVER.md`. Process: `~/Games/rvip-tools/RVIP.md`, `~/Games/rogue2wasm.md`.
