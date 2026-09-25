@@ -142,6 +142,11 @@ char **envp;
     if (argc == 2)
 	if (!restore(argv[1], envp)) /* Note: restore will never return */
 	    exit(1);
+#ifdef __EMSCRIPTEN__
+    /* web: continue the autosave */
+    if (argc < 2 && access(file_name, 0) == 0 && !restore(file_name, envp))
+	exit(1);
+#endif
     lowtime = (int) time(&now);
     dnum = (wizard && getenv("SEED") != NULL ?
 	atoi(getenv("SEED")) :
@@ -186,6 +191,7 @@ char **envp;
     hw = newwin(LINES, COLS, 0, 0);
     msgw = newwin(4, COLS, 0, 0);
     keypad(cw,1);
+    wc_mapwin = cw;
     keypad(msgw,1);
 
     init_player();			/* Roll up the rogue */

@@ -81,7 +81,10 @@ gotfile:
 	unlink(file_name);
 	return(FALSE);
     }
-    else return(TRUE);
+#ifdef __EMSCRIPTEN__
+    wc_saved = TRUE;		/* keep the file (be_web.c) */
+#endif
+    return(TRUE);
 }
 
 /*
@@ -192,6 +195,7 @@ char **envp;
     hw = newwin(LINES, COLS, 0, 0);
     msgw = newwin(4, COLS, 0, 0);
     keypad(cw,1);
+    wc_mapwin = cw;
     keypad(msgw,1);
 
     mpos = 0;
@@ -215,7 +219,11 @@ char **envp;
         return(FALSE);
     }
 
+#ifdef __EMSCRIPTEN__		/* web: kept as the autosave, removed at game end */
+    if (0)
+#else
     if (!wizard)
+#endif
     {
 	if (unlink(file) < 0) {
             close(inf); /* only close if system insists */
