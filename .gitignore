@@ -1,0 +1,7 @@
+
+# RVIP port: build output, binaries, local saves
+web/dist/
+/arogue58
+/arogue58-x11
+*.dSYM/
+*.o

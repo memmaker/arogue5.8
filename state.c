@@ -531,7 +531,7 @@ int
 rs_read_long(int inf, long *i)
 {
     unsigned char bytes[4];
-    long input;
+    int input;         /* 4 bytes in the file; long is 8 on arm64 */
     unsigned char *buf = (unsigned char *) &input;
     
     if (read_error || format_error)
@@ -548,7 +548,7 @@ rs_read_long(int inf, long *i)
         buf = bytes;
     }
     
-    *i = *((long *) buf);
+    *i = *((int *) buf);
 
     return(READSTAT);
 }
@@ -623,7 +623,7 @@ int
 rs_read_ulong(int inf, unsigned long *i)
 {
     unsigned char bytes[4];
-    unsigned long input;
+    unsigned int input;         /* 4 bytes in the file; long is 8 on arm64 */
     unsigned char *buf = (unsigned char *) &input;
     
     if (read_error || format_error)
@@ -640,7 +640,7 @@ rs_read_ulong(int inf, unsigned long *i)
         buf = bytes;
     }
     
-    *i = *((unsigned long *) buf);
+    *i = *((unsigned int *) buf);
 
     return(READSTAT);
 }
@@ -1416,7 +1416,7 @@ rs_write_daemons(FILE *savef, struct delayed_action *d_list, int count)
 
         rs_write_int(savef, d_list[i].d_type);
         rs_write_int(savef, func);
-        rs_write_int(savef, d_list[i].d_arg);
+        rs_write_int(savef, (int) d_list[i].d_arg);
         rs_write_int(savef, d_list[i].d_time);
     }
     
@@ -1513,7 +1513,11 @@ rs_read_daemons(int inf, struct delayed_action *d_list, int count)
                      break;
         }   
 
-        rs_read_int(inf, &d_list[i].d_arg);
+        {   /* RVIP: d_arg is a long; doctor's argument is the player */
+            int arg;
+            rs_read_int(inf, &arg);
+            d_list[i].d_arg = d_list[i].d_func == doctor ? (long) &player : arg;
+        }
         rs_read_int(inf, &d_list[i].d_time);
 
 	if (d_list[i].d_func == NULL) 

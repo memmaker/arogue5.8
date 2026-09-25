@@ -13,6 +13,15 @@
  */
 
 #define reg	register	/* register abbr.	*/
+
+/* sound events (port/curses.h); silent in the plain ncurses build */
+#ifndef XR_SHIM
+#define be_sound(event) ((void) 0)
+#endif
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#define daemon xr_daemon   /* libc has a daemon() too */
 #define NOOP(x) (x += 0)
 #define CCHAR(x) ( (char) (x & A_CHARTEXT) )
 
@@ -721,7 +730,7 @@
 struct delayed_action {
 	int d_type;
 	int (*d_func)();
-	int d_arg;
+	long d_arg;	/* RVIP: holds pointers (doctor gets &player) */
 	int d_time;
 };
 
@@ -1115,3 +1124,20 @@ extern char *stones[NSTONES];
 extern char *metal[NMETAL];
 extern char *wood[NWOOD];
 extern coord ch_ret;
+
+/* Prototypes the 64-bit/wasm build needs (RVIP port): variadic functions and
+ * functions returning pointers or longs must be declared before use. */
+extern int explore_mode;
+int explore_step(), explore_stairs(), monster_in_view(), cmd_menu(), inv_menu(), menu();
+void explore_reset();
+extern struct linked_list *inv_pick;
+extern int inv_again;
+int xr_daemon(int (*)(), void *, int);
+int fuse(int (*)(), void *, int, int);
+int msg(char *fmt, ...);
+int addmsg(char *fmt, ...);
+struct delayed_action *find_slot();
+unsigned long md_ntohl(), md_htonl(), netread();
+long md_memused();
+/* void functions called before their definition (WebAssembly checks return types) */
+void do_terrain(), init_terrain(), lake_check(), picky_inven();

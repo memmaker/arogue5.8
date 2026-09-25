@@ -88,7 +88,8 @@ reg int (*func)();
  *	Start a daemon, takes a function.
  */
 daemon(func, arg, type)
-reg int arg, type, (*func)();
+reg int type, (*func)();
+void *arg;		/* RVIP: pointers are 64-bit; ints pass through */
 {
 	reg struct delayed_action *dev;
 
@@ -96,7 +97,7 @@ reg int arg, type, (*func)();
 	if (dev != NULL) {
 		dev->d_type = type;
 		dev->d_func = func;
-		dev->d_arg = arg;
+		dev->d_arg = (long) arg;
 		dev->d_time = DAEMON;
 		demoncnt += 1;			/* update count */
 	}
@@ -156,7 +157,8 @@ reg int flag;
  *	Start a fuse to go off in a certain number of turns
  */
 fuse(func, arg, time, type)
-reg int (*func)(), arg, time, type;
+reg int (*func)(), time, type;
+void *arg;
 {
 	reg struct delayed_action *wire;
 
@@ -164,7 +166,7 @@ reg int (*func)(), arg, time, type;
 	if (wire != NULL) {
 		wire->d_type = type;
 		wire->d_func = func;
-		wire->d_arg = arg;
+		wire->d_arg = (long) arg;
 		wire->d_time = time;
 		fusecnt += 1;			/* update count */
 	}
