@@ -117,6 +117,7 @@ register short monst;
     mvaddstr(18, 26, (sprintf(prbuf, "%4d", 1900+lt->tm_year), prbuf));
     move(LINES-1, 0);
     refresh();
+    be_run_end("death", killer, pstats.s_exp);
     score(pstats.s_exp, KILLED, monst);
     exit(0);
 }
@@ -706,6 +707,7 @@ total_winner()
     }
     mvprintw(c - 'a' + 1, 0,"   %5d  Gold Pieces          ", oldpurse);
     refresh();
+    be_run_end("win", NULL, pstats.s_exp + (long) purse);
     score(pstats.s_exp + (long) purse, WINNER, '\0');
     exit(0);
 }

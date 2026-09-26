@@ -464,6 +464,7 @@ quit(int sig)
 	clear();
 	move(LINES-1, 0);
 	draw(stdscr);
+	be_run_end("quit", NULL, pstats.s_exp + (long) purse);
 	score(pstats.s_exp + (long) purse, CHICKEN, 0);
 	exit(0);
     }
