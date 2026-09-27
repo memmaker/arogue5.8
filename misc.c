@@ -494,7 +494,7 @@ int which;
 		msg("The jug is empty");
 		break;
 	    }
-	    quaff (obj->o_ac, NULL, FALSE);
+	    quaff (obj->o_ac, 0, FALSE);
 	    obj->o_ac = JUG_EMPTY;
 	    fuse (alchemy, obj, ALCHEMYTIME, AFTER);
 	    if (!(obj->o_flags & ISKNOW))

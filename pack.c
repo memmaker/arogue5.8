@@ -886,74 +886,74 @@ int chance;
      * avoid it
      */
     if (on(*mp, CARRYDAGGER)) {
-	item = spec_item(RELIC, MUSTY_DAGGER, NULL, NULL);
+	item = spec_item(RELIC, MUSTY_DAGGER, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYCLOAK)) {
-	item = spec_item(RELIC, EMORI_CLOAK, NULL, NULL);
+	item = spec_item(RELIC, EMORI_CLOAK, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYANKH)) {
-	item = spec_item(RELIC, HEIL_ANKH, NULL, NULL);
+	item = spec_item(RELIC, HEIL_ANKH, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYSTAFF)) {
-	item = spec_item(RELIC, MING_STAFF, NULL, NULL);
+	item = spec_item(RELIC, MING_STAFF, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYWAND)) {
-	item = spec_item(RELIC, ORCUS_WAND, NULL, NULL);
+	item = spec_item(RELIC, ORCUS_WAND, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYROD)) {
-	item = spec_item(RELIC, ASMO_ROD, NULL, NULL);
+	item = spec_item(RELIC, ASMO_ROD, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYAMULET)) {
-	item = spec_item(RELIC, YENDOR_AMULET, NULL, NULL);
+	item = spec_item(RELIC, YENDOR_AMULET, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
 
     if (on(*mp, CARRYMANDOLIN)) {
-	item = spec_item(RELIC, BRIAN_MANDOLIN, NULL, NULL);
+	item = spec_item(RELIC, BRIAN_MANDOLIN, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
     if (on(*mp, CARRYMSTAR)) {
-	item = spec_item(RELIC, HRUGGEK_MSTAR, NULL, NULL);
+	item = spec_item(RELIC, HRUGGEK_MSTAR, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
     if (on(*mp, CARRYFLAIL)) {
-	item = spec_item(RELIC, YEENOGHU_FLAIL, NULL, NULL);
+	item = spec_item(RELIC, YEENOGHU_FLAIL, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
     }
     if (on(*mp, CARRYHORN)) {
-	item = spec_item(RELIC, GERYON_HORN, NULL, NULL);
+	item = spec_item(RELIC, GERYON_HORN, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_pos = mp->t_pos;
 	attach(mp->t_pack, item);
@@ -962,7 +962,7 @@ int chance;
      * If it carries gold, give it some
      */
     if (on(*mp, CARRYGOLD) && rnd(100) < chance) {
-	    item = spec_item(GOLD, NULL, NULL, NULL);
+	    item = spec_item(GOLD, 0, 0, 0);
 	    obj = OBJPTR(item);
 	    obj->o_count = GOLDCALC + GOLDCALC;
 	    obj->o_pos = mp->t_pos;
@@ -973,7 +973,7 @@ int chance;
      * If it carries food, give it some
      */
     if (on(*mp, CARRYFOOD) && rnd(100) < chance) {
-	item = spec_item(FOOD, NULL, NULL, NULL);
+	item = spec_item(FOOD, 0, 0, 0);
 	obj = OBJPTR(item);
 	obj->o_weight = things[TYP_FOOD].mi_wght;
 	obj->o_pos = mp->t_pos;
