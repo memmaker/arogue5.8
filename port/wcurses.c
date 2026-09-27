@@ -9,6 +9,7 @@
 
 WINDOW *stdscr, *curscr, *wc_mapwin;
 int wc_cmd_prompt, wc_saved;
+int ESCDELAY;
 int LINES = 24, COLS = 80;
 static int ended = 1, attr;
 static chtype *shown;       /* what the frontend has, per cell */
@@ -26,6 +27,7 @@ WINDOW *newwin(int rows, int cols, int by, int bx)
     w->c = malloc(sizeof(chtype) * rows * cols);
     w->first = malloc(sizeof(short) * rows);
     w->last = malloc(sizeof(short) * rows);
+    w->fg = calloc(rows, sizeof *w->fg);
     werase(w);
     w->clear = 0;
     return w;
@@ -34,7 +36,7 @@ WINDOW *newwin(int rows, int cols, int by, int bx)
 int delwin(WINDOW *w)
 {
     if (!w) return ERR;
-    free(w->c); free(w->first); free(w->last); free(w);
+    free(w->c); free(w->first); free(w->last); free(w->fg); free(w);
     return OK;
 }
 
@@ -50,12 +52,12 @@ WINDOW *initscr(void)
         shown = malloc(sizeof(chtype) * LINES * COLS);
         shown_tile = malloc(sizeof(int) * LINES * COLS);
         memset(shown, 0xff, sizeof(chtype) * LINES * COLS);
-        pn[P_STATUS] = newwin(2, COLS, 0, 0);
+        pn[P_STATUS] = newwin(WC_STATUS_ROWS, COLS, 0, 0);
         pn[P_MSG] = newwin(HIST + 4, COLS, 0, 0);
         pn[P_INV] = newwin(MAXINV, COLS, 0, 0);
-        be_init(P_MAP, COLS, LINES - 3);
+        be_init(P_MAP, COLS, LINES - 1 - WC_STATUS_ROWS);
         be_init(P_MSG, COLS, HIST + 4);  /* before Status, which goes below it */
-        be_init(P_STATUS, COLS, 2);
+        be_init(P_STATUS, COLS, WC_STATUS_ROWS);
         be_init(P_INV, COLS, MAXINV);
     }
     ended = 0;
@@ -177,9 +179,12 @@ int werase(WINDOW *w)
 {
     int i;
     for (i = 0; i < w->maxy * w->maxx; i++) w->c[i] = ' ';
+    memset(w->fg, 0, sizeof *w->fg * w->maxy);
     w->cury = w->curx = 0;
     return touchwin(w);
 }
+
+int wc_rowfg(WINDOW *w, int y, const char *css) { if (y < 0 || y >= w->maxy) return ERR; w->fg[y] = css; return OK; }
 
 int wclear(WINDOW *w) { werase(w); w->clear = 1; return OK; }
 int clearok(WINDOW *w, int b) { w->clear = b; return OK; }
@@ -236,7 +241,11 @@ static int text_row(WINDOW *w, int y)
  * copies of cw), cut to the cells that differ from cw. */
 static int pop_h, pop_w;
 static char last0[512];     /* message line as last seen */
+#ifdef WC_MORESTR_ARRAY
+extern char morestr[];          /* srogue: an array, not a pointer */
+#else
 extern char *morestr;
+#endif
 
 static void pset(WINDOW *p, int y, int x, chtype ch)
 {
@@ -253,6 +262,17 @@ static void pflush(int i)
         if (p->first[y] < 0) continue;
         for (x = p->first[y]; x <= p->last[y]; x++) be_put(i, y, x, p->c[y * p->maxx + x], -1, -1);
         p->first[y] = p->last[y] = -1;
+    }
+    /* text panes are sent trimmed (RVIP W0): the cells in use, no blank
+     * columns after the text and no empty rows below it */
+    if (p && i != P_POP) {
+        int cols = 0, rows = 0;
+        for (y = 0; y < p->maxy; y++)
+            for (x = 0; x < p->maxx; x++) {
+                chtype ch = p->c[y * p->maxx + x];
+                if ((ch & A_CHARTEXT) > ' ' || (ch & A_STANDOUT)) { if (x + 1 > cols) cols = x + 1; rows = y + 1; }
+            }
+        if (cols != p->ext_c || rows != p->ext_r) { p->ext_c = cols; p->ext_r = rows; be_extent(i, cols ? cols : 1, rows ? rows : 1); }
     }
 }
 
@@ -280,6 +300,7 @@ static void close_popup(void)
 }
 
 static void hist(const char *);
+static int nhist;            /* history rows in use; the live message goes below them */
 
 static void map_refresh(WINDOW *w)
 {
@@ -291,7 +312,7 @@ static void map_refresh(WINDOW *w)
     if (w->clear || curscr->clear) memset(shown, 0xff, sizeof(chtype) * LINES * COLS);
     curscr->clear = 0;
     untouch(w);
-    for (y = 1; y < LINES - 2 && y < 512; y++) {
+    for (y = 1; y < LINES - WC_STATUS_ROWS && y < 512; y++) {
         char r[512];
         int n;
         trow[y] = text_row(w, y);
@@ -303,12 +324,12 @@ static void map_refresh(WINDOW *w)
         strcpy(maptext[y], r);
     }
     /* every cell: monsters/objects under unchanged chars may have changed */
-    for (y = 1; y < LINES - 2; y++)
+    for (y = 1; y < LINES - WC_STATUS_ROWS; y++)
         for (x = 0; x < COLS; x++) put(y, x, trow[y] ? ' ' : w->c[y * COLS + x], !trow[y]);
-    for (y = 0; y < 2; y++)
-        for (x = 0; x < COLS; x++) pset(pn[P_STATUS], y, x, w->c[(LINES - 2 + y) * COLS + x]);
+    for (y = 0; y < WC_STATUS_ROWS; y++)
+        for (x = 0; x < COLS; x++) pset(pn[P_STATUS], y, x, w->c[(LINES - WC_STATUS_ROWS + y) * COLS + x]);
     wc_inv(pn[P_INV]);
-    if (w->cury >= 1 && w->cury < LINES - 2) be_cursor(P_MAP, w->cury - 1, w->curx);
+    if (w->cury >= 1 && w->cury < LINES - WC_STATUS_ROWS) be_cursor(P_MAP, w->cury - 1, w->curx);
     else be_cursor(-1, 0, 0);
 }
 
@@ -325,11 +346,16 @@ static void hist(const char *s)
         reps = 1;
         snprintf(prev, sizeof prev, "%s", s);
         snprintf(buf, sizeof buf, "%s", s);
-        for (y = 0; y < HIST - 1; y++)
-            for (x = 0; x < p->maxx; x++) pset(p, y, x, p->c[(y + 1) * p->maxx + x]);
+        if (nhist < HIST)           /* not full yet: push the live rows down */
+            for (y = nhist + 3; y >= nhist; y--)
+                for (x = 0; x < p->maxx; x++) pset(p, y + 1, x, p->c[y * p->maxx + x]);
+        else
+            for (y = 0; y < HIST - 1; y++)
+                for (x = 0; x < p->maxx; x++) pset(p, y, x, p->c[(y + 1) * p->maxx + x]);
+        if (nhist < HIST) nhist++;
     }
     n = strlen(buf);
-    for (x = 0; x < p->maxx; x++) pset(p, HIST - 1, x, x < n ? (unsigned char)buf[x] : ' ');
+    for (x = 0; x < p->maxx; x++) pset(p, nhist - 1, x, x < n ? (unsigned char)buf[x] : ' ');
 }
 
 static void msg_refresh(WINDOW *w)
@@ -349,10 +375,10 @@ static void msg_refresh(WINDOW *w)
             chtype ch = w->c[y * w->maxx + x];
             int sy = y + w->begy, sx = x + w->begx;
             if (y && wc_mapwin && ch == wc_mapwin->c[sy * COLS + sx]) ch = ' ';
-            pset(pn[P_MSG], HIST + y, x, ch);
+            pset(pn[P_MSG], nhist + y, x, ch);
         }
     untouch(w);
-    be_cursor(P_MSG, HIST + w->cury, w->curx);
+    if (w != wc_mapwin || w->cury == 0) be_cursor(P_MSG, nhist + w->cury, w->curx);
 }
 
 static void pop_refresh(WINDOW *w)
@@ -382,6 +408,7 @@ static void pop_refresh(WINDOW *w)
     }
     for (y = y0; y <= y1; y++)
         for (x = x0; x <= x1; x++) pset(pn[P_POP], y - y0, x - x0, w->c[y * w->maxx + x]);
+    for (y = y0; y <= y1; y++) be_rowfg(P_POP, y - y0, w->fg[y] ? w->fg[y] : "");
     if (w->cury >= y0 && w->cury <= y1 && w->curx >= x0 && w->curx <= x1)
         be_cursor(P_POP, w->cury - y0, w->curx - x0);
     else be_cursor(-1, 0, 0);
@@ -404,14 +431,17 @@ int wrefresh(WINDOW *w)
 {
     extern WINDOW *msgw;
     int i;
-    if (w == wc_mapwin) map_refresh(w);
-    else if (w == msgw) msg_refresh(w);
+    if (w == wc_mapwin) {
+        map_refresh(w);
+        if (!msgw) msg_refresh(w);      /* Rogue-style: messages on row 0 */
+    }
+    else if (msgw && w == msgw) msg_refresh(w);
     else pop_refresh(w);
     for (i = P_STATUS; i < NPANES; i++) if (i != P_POP || pop_h) pflush(i);
     be_flush();
     if (getenv("XROGUE_DUMP")) {        /* testing: panes as text */
         fclose(fopen(getenv("XROGUE_DUMP"), "w"));
-        if (wc_mapwin) dump("MAP", wc_mapwin, 1, LINES - 2);
+        if (wc_mapwin) dump("MAP", wc_mapwin, 1, LINES - WC_STATUS_ROWS);
         for (i = P_STATUS; i < NPANES; i++)
             dump(i == P_STATUS ? "STATUS" : i == P_MSG ? "MSG" : i == P_INV ? "INV" : "POP",
                  i == P_POP && !pop_h ? NULL : pn[i], 0, pn[i] ? pn[i]->maxy : 0);

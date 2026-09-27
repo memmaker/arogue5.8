@@ -216,7 +216,7 @@ command()
 		when 'I' : after = FALSE; picky_inven();
 		when 'd' : drop(NULL);
 		when 'P' : grab(hero.y, hero.x);
-		when 'q' : quaff(-1, NULL, TRUE);
+		when 'q' : quaff(-1, 0, TRUE);
 		when 'r' : read_scroll(-1, NULL, TRUE);
 		when 'e' : eat();
 		when 'w' : wield();

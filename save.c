@@ -119,8 +119,10 @@ register FILE *savef;
     int slines = LINES;
     int scols  = COLS;
 
+#ifndef __EMSCRIPTEN__   /* web autosave: keep playing, leave the screen alone */
     wmove(cw, LINES-1, 0);
     draw(cw);
+#endif
     fwrite("junk", 1, 5, savef);
     fseek(savef, 0L, 0);
     /* _endwin = TRUE; */
@@ -130,7 +132,9 @@ register FILE *savef;
     sprintf(prbuf,"%d x %d\n", LINES, COLS);
     encwrite(prbuf,80,savef);
 
+#ifndef __EMSCRIPTEN__
     msg("");
+#endif
     ret = rs_save_file(savef);
 
     fclose(savef);

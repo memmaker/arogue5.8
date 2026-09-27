@@ -4,6 +4,7 @@
 #define WCURSES_H
 #include <stdarg.h>
 #include <stdio.h>
+#include <sys/types.h>
 #include <ctype.h>
 
 typedef unsigned int chtype;
@@ -27,7 +28,9 @@ typedef struct _win {
     int maxy, maxx, begy, begx, cury, curx;
     int clear;          /* clearok */
     short *first, *last;/* changed range per line, -1 = none */
+    int ext_c, ext_r;   /* extent last sent with be_extent() */
     chtype *c;
+    const char **fg;    /* row colour (css) set by the game, NULL = default */
 } WINDOW;
 
 extern WINDOW *stdscr, *curscr;
@@ -101,6 +104,15 @@ int wstandend(WINDOW *);
 #define standout() wstandout(stdscr)
 #define standend() wstandend(stdscr)
 #define keypad(w, b) OK
+#define beep() OK
+#define baudrate() 9600
+#define idlok(w, b) OK
+#define leaveok(w, b) OK
+#define nodelay(w, b) OK
+#define tputs(s, n, f) OK
+#define mvwin(w, y, x) OK                   /* pop-ups are placed by the frontend */
+#define subwin(p, r, c, y, x) (p)           /* Rogue 5.4 copies a list into it */
+#define flash() OK
 #define typeahead(fd) OK
 #define noecho() OK
 #define echo() OK
@@ -108,6 +120,8 @@ int wstandend(WINDOW *);
 #define crmode() OK
 #define mvcur(a, b, c, d) OK
 #define nocbreak() OK
+#define nocrmode() OK
+#define termname() "xterm"
 #define raw() OK
 #define noraw() OK
 #define nonl() OK
@@ -140,8 +154,15 @@ int  be_getkey(int wait);   /* -1 when !wait and nothing queued */
 void be_end(void);
 int  tile_for(int y, int x, int ch, int *under);  /* tiles.c: -1 = text */
 struct wc_kind { int type; const char *name, *css; };
+struct object;
+int wc_obj_tile(struct object *o);
+int wc_mon_tile(int idx);    /* by index in monsters[] */
 const struct wc_kind *wc_kind(int type);         /* tiles.c */
-void be_invfg(int y, const char *css);   /* inventory row colour */
+void be_invfg(int y, const char *css, int tile);   /* inventory row colour */
+void be_rowfg(int p, int y, const char *css);      /* pop-up row colour */
+int be_icons(void);                                /* item icons shown in the Inventory pane */
+int wc_rowfg(WINDOW *w, int y, const char *css);
+void be_extent(int p, int cols, int rows); /* text pane trimmed: cells in use (RVIP W0) */
 void wc_inv(WINDOW *);                            /* tiles.c */
 extern WINDOW *wc_mapwin;  /* the game's map window (cw) */
 extern int wc_cmd_prompt;  /* waiting for a command key */
@@ -149,8 +170,16 @@ extern int wc_saved;       /* the player saved (S): keep the save file */
 void be_sound(const char *);    /* game event, Dubtrain sound name (web plays it) */
 void be_run_end(const char *ev, const char *killer, long score); /* run-report beacon */
 #define XR_SHIM 1
+#ifndef WC_STATUS_ROWS
+#define WC_STATUS_ROWS 2   /* status lines at the bottom of the map window */
+#endif
+#define _maxy maxy          /* state.c of UltraRogue reads these */
+#define _maxx maxx
+#define _cury cury
+#define _curx curx
+extern int ESCDELAY;
 /* termcap leftovers in mdport.c: no raw terminal output here */
-#define CE 0
+#define CE ((char *) 0)
 #define SO ""
 #define SE ""
 #define _puts(s) ((void) 0)
