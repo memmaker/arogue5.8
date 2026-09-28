@@ -7,3 +7,5 @@ web/dist/
 *.o
 save/
 __pycache__/
+arogue58-term
+arogue58-term.exe
